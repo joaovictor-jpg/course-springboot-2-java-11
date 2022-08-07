@@ -3,6 +3,8 @@ package com.educandoweb.course.services;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -42,9 +44,13 @@ public class ProductService {
 	}
 
 	public Product update(Product obj) {
-		Product entity = repository.getReferenceById(obj.getId());
-		updateData(entity, obj);
-		return repository.save(entity);
+		try {
+			Product entity = repository.getReferenceById(obj.getId());
+			updateData(entity, obj);
+			return repository.save(entity);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException(obj.getId());
+		}
 	}
 
 	private void updateData(Product entity, Product obj) {
@@ -59,7 +65,7 @@ public class ProductService {
 			repository.deleteById(id);
 		} catch (EmptyResultDataAccessException e) {
 			throw new ResourceNotFoundException(id);
-		} catch(DataIntegrityViolationException e) {
+		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException(e.getMessage());
 		}
 	}
